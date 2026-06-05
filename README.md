@@ -1,27 +1,21 @@
 # claude-skills-databricks
 
-Centralized Claude agent and skills repository for automating Databricks pipelines using the [Databricks CLI](https://docs.databricks.com/dev-tools/cli/index.html) and [Databricks Asset Bundles (DAB)](https://docs.databricks.com/dev-tools/bundles/index.html).
+Centralized Claude Code agent for automating Databricks pipelines using the [Databricks CLI](https://docs.databricks.com/dev-tools/cli/index.html) and [Databricks Asset Bundles (DAB)](https://docs.databricks.com/dev-tools/bundles/index.html).
 
 ---
 
 ## What's in This Repo
 
 ```
-.github/
-├── agents/
-│   └── databricks-pipeline.agent.md       # Main orchestrator agent
-├── instructions/
-│   └── databricks-bundles.instructions.md # Auto-applied context for bundle YAML files
-└── skills/
-    ├── dab-deploy/                         # Deploy a bundle to a target environment
-    │   ├── SKILL.md
-    │   └── references/
-    │       ├── bundle-schema.md            # databricks.yml schema reference
-    │       └── cli-commands.md             # Full CLI command reference
-    ├── dab-validate/                       # Validate bundle before deploying
-    │   └── SKILL.md
-    └── dab-run/                            # Trigger and monitor job/pipeline runs
-        └── SKILL.md
+CLAUDE.md                         # Agent system prompt — auto-loaded by Claude Code
+.claude/
+├── settings.json                 # Tool permissions
+└── commands/
+    ├── pipeline.md               # /pipeline — full end-to-end: validate → deploy → run → int tests
+    ├── dab-deploy.md             # /dab-deploy — deploy to target environment
+    ├── dab-validate.md           # /dab-validate — validate bundle config
+    ├── dab-run.md                # /dab-run — trigger and monitor a run
+    └── dab-int-test.md           # /dab-int-test — run integration tests on deployed jobs
 ```
 
 ---
@@ -32,36 +26,50 @@ Centralized Claude agent and skills repository for automating Databricks pipelin
 
 - [Databricks CLI v0.200+](https://docs.databricks.com/dev-tools/cli/install.html)
 - Authenticated to your Databricks workspace (`databricks configure`)
-- VS Code with [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 
-### Using the Agent
+### Setup
 
-1. Clone this repo into your Databricks project workspace (or add as a submodule)
-2. Open the folder in VS Code
-3. In GitHub Copilot Chat, select the **Databricks Pipeline Agent** from the agent picker
-4. Describe what you want to do:
-   - _"Deploy the ingest job to dev"_
-   - _"Validate my bundle config"_
-   - _"Create a new DLT pipeline for the silver layer"_
-   - _"Run the transform job and show me the output"_
+Pull this repo into your Databricks project (git subtree recommended so updates flow automatically):
 
-### Using Skills Directly
+```bash
+git subtree add --prefix=.claude-databricks git@github.com:<your-org>/claude-skills-databricks.git main --squash
+```
 
-Type `/` in Copilot Chat to invoke a skill:
+Then symlink or copy `CLAUDE.md` and `.claude/` into your project root. Claude Code picks them up automatically on the next session.
 
-| Skill | Command | Use For |
-|-------|---------|---------|
-| Deploy | `/dab-deploy` | Deploy bundle to dev/staging/prod |
-| Validate | `/dab-validate` | Check bundle config before deploying |
-| Run | `/dab-run` | Trigger and monitor a job or pipeline |
+To update from this central repo later:
+
+```bash
+git subtree pull --prefix=.claude-databricks git@github.com:<your-org>/claude-skills-databricks.git main --squash
+```
+
+---
+
+## Usage
+
+Claude Code loads `CLAUDE.md` automatically — no agent picker needed. Use slash commands to trigger specific workflows:
+
+| Command | Use For | Example |
+|---------|---------|---------|
+| `/pipeline` | Full end-to-end: validate → deploy → run → int tests | `/pipeline ingest_job dev` |
+| `/dab-deploy` | Deploy bundle to a target environment | `/dab-deploy prod` |
+| `/dab-validate` | Validate bundle config before deploying | `/dab-validate staging` |
+| `/dab-run` | Trigger and monitor a job or pipeline | `/dab-run transform_job dev` |
+| `/dab-int-test` | Run integration tests on a deployed job | `/dab-int-test dev` |
+
+Or just describe what you want in plain language:
+
+- _"Deploy and run the ingest job in dev"_
+- _"Validate my bundle config"_
+- _"Run the silver pipeline with a full refresh"_
+- _"Create a new DLT pipeline for the gold layer"_
 
 ---
 
 ## Agent Capabilities
 
-The **Databricks Pipeline Agent** can:
-
-- **Author** `databricks.yml` and resource YAML from scratch or from an existing workspace resource
+- **Author** `databricks.yml` and resource YAML from scratch or reverse-scaffold from an existing workspace resource
 - **Validate** bundle configuration and explain errors
 - **Deploy** bundles to target environments (with production confirmation gate)
 - **Run** jobs and DLT pipelines, stream output, and help debug failures
@@ -81,8 +89,8 @@ The **Databricks Pipeline Agent** can:
 
 ## Contributing
 
-Add new skills under `.github/skills/<skill-name>/SKILL.md`. Follow the existing skill structure:
-1. Clear `description` with trigger keywords for agent discovery
-2. Step-by-step `Procedure` section
-3. Common errors and fixes table
-4. Reference links to shared docs in `dab-deploy/references/`
+Add new commands under `.claude/commands/<command-name>.md`. Follow the existing command structure:
+1. State the goal in the first line
+2. Use `$ARGUMENTS` to accept inline parameters
+3. Include step-by-step instructions with exact CLI commands
+4. Add a common errors/fixes table
