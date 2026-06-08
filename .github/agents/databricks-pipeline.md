@@ -28,7 +28,14 @@ Run this sequence safely and report outcomes clearly:
 - If user does not provide a target, use `dev`.
 - If user does not provide profile, use the same value as target.
 - Require explicit job key before execution — if unclear, read `databricks.yml` and list available job/pipeline keys for the user to choose from.
-- Use `scripts/databricks/run_pipeline.sh` if it exists at the repo root; otherwise invoke `databricks bundle` CLI commands directly.
+- Use `databricks/run_pipeline.sh` if it exists at the repo root; otherwise invoke `databricks bundle` CLI commands directly.
+
+## Token and Cost Guardrails
+- Prefer the single script path (`databricks/run_pipeline.sh`) over multiple ad-hoc CLI calls.
+- Avoid re-reading files unless content changed during the session.
+- Use targeted reads/search and avoid full-repo scans for routine tasks.
+- Keep summaries compact: one status block plus one next action when failing.
+- Do not retry the same failed command more than once unless the error class is `TRANSIENT_PLATFORM`.
 
 ## Reading Script Output
 The script prints a structured summary block at the end of every run. Read every field:

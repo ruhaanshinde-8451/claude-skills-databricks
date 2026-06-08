@@ -27,7 +27,7 @@ List all keys under `resources.jobs` and `resources.pipelines`. If `--job` is mi
 - If target is not provided, use `dev`.
 - If profile is not provided, use the same value as target.
 - Require an explicit job key before execution.
-- Use `scripts/databricks/run_pipeline.sh` if it exists at the repo root; otherwise invoke `databricks bundle` CLI commands directly.
+- Use `databricks/run_pipeline.sh` if it exists at the repo root; otherwise invoke `databricks bundle` CLI commands directly.
 
 ## Usage
 ```bash
@@ -39,8 +39,8 @@ List all keys under `resources.jobs` and `resources.pipelines`. If `--job` is mi
 2. If `--job` is missing, read `databricks.yml`, list available job/pipeline keys, and ask the user to choose.
 3. Execute:
 ```bash
-   # If scripts/databricks/run_pipeline.sh exists:
-   scripts/databricks/run_pipeline.sh --job <job_key> --target <target> --profile <profile> [...flags]
+   # If databricks/run_pipeline.sh exists:
+   databricks/run_pipeline.sh --job <job_key> --target <target> --profile <profile> [...flags]
    # Otherwise:
    databricks bundle validate -t <target> --profile <profile>
    databricks bundle deploy -t <target> --profile <profile>
@@ -54,6 +54,11 @@ List all keys under `resources.jobs` and `resources.pipelines`. If `--job` is mi
 - Never print or request secrets.
 - If Databricks auth fails, stop and report the exact command that failed.
 - Never run against `prd` without explicit user confirmation.
+
+## Token and Cost Guardrails
+- Prefer the script path to reduce command count and repeated output.
+- Do not execute duplicate validate/deploy/run commands if the script already completed that stage.
+- Keep outputs concise: include the final structured summary and only critical failure excerpts.
 
 ## Output Format
 - `Target:` value

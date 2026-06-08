@@ -64,3 +64,6 @@ The expected parameter keys for `ingest` are: `env`, `working_directory`.
 - Do not expose secrets or credential material.
 - Do not invent parameter values — only compare against what was actually passed.
 - If run metadata is incomplete, report uncertainty explicitly.
+- Keep output compact: report only per-task deltas (missing/extra/incorrect), not full metadata blobs.
+- Read only the relevant job/task sections from `databricks.yml`; avoid broad file dumps.
+- Stop after one deterministic comparison pass unless new run metadata is provided.
