@@ -1,0 +1,91 @@
+name: Build and Publish Artifacts
+
+on:
+  push:
+
+jobs:
+  semantic-version:
+    name: Create Semantic Version
+    uses: 8451LLC/sds-reusable-workflows/.github/workflows/bump-semantic-version-component.yml@v2
+    with:
+      release-branches: main
+      prerelease-suffix: dev.${{ github.run_number }}
+      custom-tag: ${{ github.event.inputs.semantic-version }}
+    secrets: inherit
+
+  build-and-deploy-python-wheel:
+    name: Build and Publish Wheel to Cloud Artifactory
+    needs: semantic-version
+    uses: 8451LLC/sds-reusable-workflows/.github/workflows/python-build-and-publish-component.yml@v2
+    with:
+      project-dependencies-file: "requirements-test.txt"
+      project-source-location: "."
+      testing-image: docker-all.artifactory.8451.cloud/sds/core-images/python-gha-build-env/python3-8-openjdk-8-gha-build-env:2.1.2
+      cache-key-hash-file: "setup.py"
+      semantic-version: ${{ needs.semantic-version.outputs.semantic-version }}
+      wheel-prerelease-suffix: "dev"
+      sonarqube-source-dir: "."
+      sonarqube-exclusions: tests/**/*
+      sonarqube-coverage-exclusions: "**/*_test.py,**/htmlcov"
+      artifactory-instance: cloud
+      jfrog-server-url: "https://artifactory.8451.cloud"
+      pip-artifactory-repo: "python-all"
+      pytest-option: "tests -m unit"
+    secrets: inherit
+
+  trigger-dbx-deploy:
+    name: ⚙️ Trigger Databricks deploy
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs: build-and-deploy-python-wheel
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Dev
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          token: ${{ secrets.SHARED_ACTIONS_SVC_ACCT_TOKEN }}
+          ref: ${{ github.event.push.ref }}
+          workflow: "Databricks Deploy"
+          inputs: |
+            {
+              "environment": "Development"
+            }
+      - name: Deploy to Tst
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          token: ${{ secrets.SHARED_ACTIONS_SVC_ACCT_TOKEN }}
+          ref: ${{ github.event.push.ref }}
+          workflow: "Databricks Deploy"
+          inputs: |
+            {
+              "environment": "Testing"
+            }
+      - name: Deploy to Stg
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          token: ${{ secrets.SHARED_ACTIONS_SVC_ACCT_TOKEN }}
+          ref: ${{ github.event.push.ref }}
+          workflow: "Databricks Deploy"
+          inputs: |
+            {
+              "environment": "Staging"
+            }
+      - name: Deploy to Prd
+        uses: benc-uk/workflow-dispatch@v1.2.2
+        with:
+          token: ${{ secrets.SHARED_ACTIONS_SVC_ACCT_TOKEN }}
+          ref: ${{ github.event.push.ref }}
+          workflow: "Databricks Deploy"
+          inputs: |
+            {
+              "environment": "Production"
+            }
+
+  tag-repo:
+    name: 🏷 Tag Repository
+    needs: [ semantic-version, build-and-deploy-python-wheel, trigger-dbx-deploy ]
+    if: (github.ref == 'refs/heads/main')
+    uses: 8451LLC/sds-reusable-workflows/.github/workflows/tag-repository-component.yml@v2
+    with:
+      tag: ${{ needs.semantic-version.outputs.semantic-version }}
+    secrets: inherit

@@ -1,0 +1,68 @@
+name: Regression Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue or PR number to send status updates to'
+        required: true
+jobs:
+  set_notebook_params:
+    name: Set run parameters
+    runs-on: self-hosted
+    outputs:
+      NOTEBOOK_PARAMS: ${{ steps.set_notebook_params.outputs.notebook_params }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set notebook parameters
+        id: set_notebook_params
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          notebook_params="--notebook-params=\"run_test=regression\" --notebook-params=\"sample_fraction=1\" --notebook-params=\"commit_sha=$commit_sha\" --notebook-params=\"issue_number=${{ github.event.inputs.issue_number }}\""
+          
+          echo "Running Databricks command with params: $notebook_params"
+          echo "NOTEBOOK_PARAMS=$notebook_params" >> $GITHUB_OUTPUT
+  echo_env_vars:
+    name: Echo Environment Variables
+    runs-on: self-hosted
+    needs: [set_notebook_params]
+    env:
+      notebook_params: ${{ needs.set_notebook_params.outputs.NOTEBOOK_PARAMS }}
+    steps:
+      - run: |
+          echo "$notebook_params"
+
+
+  deploy_feature_branch:
+    name: Deploy feature branch to TST
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/deploy-to-databricks.yml@main
+    secrets: inherit
+    with:
+      parsed-environment: Testing-gbx3
+      environment: Testing
+      working-directory: "."
+      bundle-deploy-parameters: '-t tst'
+      databricks-cli-version: "0.243.0"
+
+  run_ruhaan_repo_in_tst:
+    name: Run ruhaan_repo on Feature Branch in TST
+    needs: [set_notebook_params, deploy_feature_branch]
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/run-jobs-in-databricks.yml@main
+    secrets: inherit
+    with:
+      environment: Testing-gbx3
+      job-name: 'ruhaan_repo'
+      bundle-run-parameters: '-t tst ${{ needs.set_notebook_params.outputs.NOTEBOOK_PARAMS }} --restart --no-wait'
+      databricks-cli-version: "0.243.0"
+
+  run_ruhaan_repo_in_stg:
+    name: Run ruhaan_repo on Main Branch in STG
+    needs: set_notebook_params
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/run-jobs-in-databricks.yml@main
+    secrets: inherit
+    with:
+      environment: Staging-gbx3
+      job-name: 'ruhaan_repo'
+      bundle-run-parameters: '-t stg ${{ needs.set_notebook_params.outputs.NOTEBOOK_PARAMS }} --restart --no-wait'
+      databricks-cli-version: "0.243.0"

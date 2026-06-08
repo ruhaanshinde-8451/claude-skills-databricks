@@ -1,0 +1,51 @@
+name: Databricks Deploy
+run-name: Databricks Deploy to ${{ inputs.env-from-caller || github.event.inputs.environment }}
+
+on:
+  workflow_call:
+    inputs:
+      env-from-caller:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        description: "Environment to deploy"
+        type: choice
+        options:
+          - Development
+          - Testing
+          - Staging
+          - Production
+
+jobs:
+  set-parameters:
+    runs-on: ${{ vars.EPHEMERAL_RUNNER_NAME }}
+    outputs:
+      bundle_deploy_parameters: ${{ steps.set_params.outputs.bundle_deploy_parameters }}
+    steps:
+      - id: set_params
+        run: |
+          ENV_INPUT="${{ inputs.env-from-caller || github.event.inputs.environment }}"
+          if [[ "$ENV_INPUT" == "Development" ]]; then
+            echo "bundle_deploy_parameters=-t dev" >> $GITHUB_OUTPUT
+          elif [[ "$ENV_INPUT" == "Testing" ]]; then
+            echo "bundle_deploy_parameters=-t tst" >> $GITHUB_OUTPUT
+          elif [[ "$ENV_INPUT" == "Staging" ]]; then
+            echo "bundle_deploy_parameters=-t stg" >> $GITHUB_OUTPUT
+          elif [[ "$ENV_INPUT" == "Production" ]]; then
+            echo "bundle_deploy_parameters=-t prd" >> $GITHUB_OUTPUT
+          fi
+
+  bundle-deploy:
+    needs: set-parameters
+    name: Deploy DAB
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/deploy-to-databricks.yml@main
+    secrets: inherit
+    with:
+      environment: ${{ inputs.env-from-caller || github.event.inputs.environment }}
+      parsed-environment: ${{ inputs.env-from-caller || github.event.inputs.environment }}-gbx3
+      working-directory: "."
+      bundle-deploy-parameters: ${{ needs.set-parameters.outputs.bundle_deploy_parameters }}
+      databricks-cli-version: "0.243.0"

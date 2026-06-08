@@ -1,0 +1,29 @@
+name: Integration Test
+
+on:
+#  push:  # used this for testing
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
+
+jobs:
+  deploy_feature_branch:
+    name: Deploy feature branch to Dev
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/deploy-to-databricks.yml@main
+    secrets: inherit
+    with:
+      environment: Development
+      parsed-environment: Development-gbx3
+      working-directory: "."
+      bundle-deploy-parameters: '-t dev'
+      databricks-cli-version: "0.243.0"
+
+  run_integration_test_in_dev:
+    name: Run ruhaan_repo on Feature Branch in Dev
+    uses: 8451LLC/sciclops-reusable-workflows/.github/workflows/run-jobs-in-databricks.yml@main
+    secrets: inherit
+    with:
+      environment: Development-gbx3
+      job-name: 'ruhaan_repo'
+      bundle-run-parameters: '-t dev ${{ needs.set_notebook_params.outputs.notebook_params }} --restart'
+      databricks-cli-version: "0.243.0"
+

@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Community Support (StackOverflow)
+    ## TODO
+    url:
+    about: Please ask and answer questions here.
+  - name: Community Discussions (Microsoft Teams)
+    ## TODO
+    url:
+    about: Reachout to the team to have open discussions
+  - name: Report Production Outage (iService)
+    ## TODO
+    url:
+    about: Submit iService Incident to report a production outage.
