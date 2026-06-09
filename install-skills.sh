@@ -5,9 +5,26 @@ set -euo pipefail
 TARGET_DIR="${HOME}/.copilot/skills"
 FORCE="false"
 SKILL_NAME=""
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGINS_DIR="${SCRIPT_DIR}/plugins"
 MODE="personal"
+SKILLS_REPO="${SKILLS_REPO:-ruhaanshinde-8451/claude-skills-databricks}"
+SKILLS_REF="${SKILLS_REF:-main}"
+
+if [[ -n "${BASH_SOURCE[0]-}" && -f "${BASH_SOURCE[0]}" ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+  SCRIPT_DIR="$(pwd)"
+fi
+
+PLUGINS_DIR="${SCRIPT_DIR}/plugins"
+TEMP_DIR=""
+
+cleanup() {
+  if [[ -n "$TEMP_DIR" && -d "$TEMP_DIR" ]]; then
+    rm -rf "$TEMP_DIR"
+  fi
+}
+
+trap cleanup EXIT
 
 usage() {
   cat <<'EOF'
@@ -50,6 +67,22 @@ done
 
 if [[ "$MODE" == "project" ]]; then
   TARGET_DIR="$(pwd)/.github/skills"
+fi
+
+if [[ ! -d "$PLUGINS_DIR" ]]; then
+  TEMP_DIR="$(mktemp -d)"
+  tarball_url="https://codeload.github.com/${SKILLS_REPO}/tar.gz/${SKILLS_REF}"
+
+  echo "Local plugins directory not found. Downloading from ${SKILLS_REPO}@${SKILLS_REF}..."
+  curl -fsSL "$tarball_url" | tar -xzf - -C "$TEMP_DIR"
+
+  downloaded_plugins="$(find "$TEMP_DIR" -type d -path '*/plugins' | head -n 1)"
+  if [[ -z "$downloaded_plugins" ]]; then
+    echo "Failed to locate plugins directory in downloaded archive."
+    exit 1
+  fi
+
+  PLUGINS_DIR="$downloaded_plugins"
 fi
 
 mkdir -p "$TARGET_DIR"
