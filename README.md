@@ -15,28 +15,36 @@ Install once, then use in **GitHub Copilot CLI** for validate/deploy/run and par
 
 ## Installation
 
+Note: some environments cache `raw.githubusercontent.com` aggressively. If you see old installer behavior, use the cache-busted URL below (or the pinned commit fallback).
+
 ### Install all skills
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash
+curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash
 ```
 
 ### Install one skill
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --skill databricks-run-pipeline
+curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --skill databricks-run-pipeline
 ```
 
 ### Replace existing installed version
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --force
+curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --force
 ```
 
 For repo-scoped install (current repo only):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --project
+curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --project
+```
+
+If you still get cached content, use a commit-pinned URL:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/2acf8899b69b5e4e9d0c9c978c65772b63bec8fd/install-skills.sh | bash -s -- --project
 ```
 
 After install, run `/skills reload` (or open a new session).
