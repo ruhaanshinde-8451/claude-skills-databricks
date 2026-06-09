@@ -1,4 +1,4 @@
-# 8451 Databricks Skills Marketplace
+# Copilot Databricks Skills
 
 A skills pack for Databricks Asset Bundle workflows.  
 Install once, then use in **GitHub Copilot CLI** for validate/deploy/run and parameter validation.
