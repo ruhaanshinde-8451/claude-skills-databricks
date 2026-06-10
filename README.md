@@ -26,8 +26,8 @@ Then reload skills:
 ```
 
 You should see:
-- `databricks-run-pipeline`
-- `databricks-integration-test`
+- `deploy-dab`
+- `run-integration-test`
 - `test-databricks-orchestrator`
 
 ### Other install options
@@ -41,7 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-dat
 Install a single skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --skill databricks-run-pipeline
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --skill deploy-dab
 ```
 
 Overwrite existing installed version:
@@ -56,53 +56,47 @@ Pin to a commit or tag by replacing `main` in the URL.
 
 | Skill | Command | Description |
 |---|---|---|
-| Databricks Run Pipeline | `/databricks-run-pipeline` | Validate, deploy, run a bundle job, collect output, and summarize status |
-| Databricks Integration Test | `/databricks-integration-test` | Compare expected vs actual task parameters for a completed run |
-| Test Databricks Orchestrator | `/test-databricks-orchestrator` | Generate focused tests for the Databricks orchestrator and related skills |
+| Deploy DAB (dev) | `/deploy-dab` | Deploy a Databricks Asset Bundle to `dev` and return structured status/error output |
+| Run Integration Test (dev) | `/run-integration-test` | Trigger a Databricks integration test job and poll to terminal state with structured results |
+| Test Databricks Orchestrator | `/test-databricks-orchestrator` | Generate focused tests for Databricks orchestration and skill behavior |
 
 ## Usage
 
-### Databricks Run Pipeline
+### Recommended flow (dev)
+
+Use these two skills in sequence:
+
+```bash
+/deploy-dab --repo-path <path-to-dab-repo> --target dev
+/run-integration-test --repo-path <path-to-dab-repo> (--job-id <id> | --job-name <name>) --target dev
+```
+
+### Deploy DAB (dev only)
 
 Usage:
 
 ```bash
-/databricks-run-pipeline --job <job_key> [--target <target>] [--profile <profile>] [options]
+/deploy-dab --repo-path <path-to-dab-repo> --target dev
 ```
 
-Options:
-
-| Flag | Default | Description |
-|---|---|---|
-| `--job` | required | Bundle job key to run |
-| `--target` | `dev` | Bundle target |
-| `--profile` | same as target | Databricks CLI profile |
-| `--skip-deploy` | false | Skip the deploy step |
-| `--no-strict` | false | Disable strict bundle validation |
-| `--no-wait` | false | Submit run without waiting for completion |
-| `--skip-integration-test` | false | Skip task parameter validation |
-
-Examples:
+Example:
 
 ```bash
-/databricks-run-pipeline --job ruhaan_repo
-/databricks-run-pipeline --job ruhaan_repo_regression_tests --target stg --profile stg
-/databricks-run-pipeline --job ruhaan_repo --skip-deploy
+/deploy-dab --repo-path /Users/you/repos/my-dab --target dev
 ```
 
-### Databricks Integration Test
+### Run Integration Test (dev only)
 
 Usage:
 
 ```bash
-/databricks-integration-test <run_id> --job <job_key> [--target <target>] [--profile <profile>]
+/run-integration-test --repo-path <path-to-dab-repo> (--job-id <id> | --job-name <name>) --target dev [--poll-interval-sec 30] [--timeout-sec 1800]
 ```
 
-Examples:
+Example:
 
 ```bash
-/databricks-integration-test 123456789 --job ruhaan_repo
-/databricks-integration-test 123456789 --job ruhaan_repo --target stg --profile stg
+/run-integration-test --repo-path /Users/you/repos/my-dab --job-id 123456789 --target dev
 ```
 
 ## Defaults and guardrails

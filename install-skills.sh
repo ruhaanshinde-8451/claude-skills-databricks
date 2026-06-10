@@ -32,7 +32,7 @@ Usage:
   ./install-skills.sh [--skill <skill-name>] [--force] [--project]
 
 Options:
-  --skill <skill-name>  Install only one skill by directory name (for example: databricks-run-pipeline)
+  --skill <skill-name>  Install only one skill by directory name (for example: deploy-dab)
   --force               Replace existing installed skill directory
   --project             Install into .github/skills in the current repo instead of ~/.copilot/skills
   -h, --help            Show help
