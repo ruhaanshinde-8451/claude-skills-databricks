@@ -28,7 +28,6 @@ Then reload skills:
 You should see:
 - `deploy-dab`
 - `run-integration-test`
-- `test-databricks-orchestrator`
 
 ### Other install options
 
@@ -58,7 +57,6 @@ Pin to a commit or tag by replacing `main` in the URL.
 |---|---|---|
 | Deploy DAB (dev) | `/deploy-dab` | Deploy a Databricks Asset Bundle to `dev` and return structured status/error output |
 | Run Integration Test (dev) | `/run-integration-test` | Trigger a Databricks integration test job and poll to terminal state with structured results |
-| Test Databricks Orchestrator | `/test-databricks-orchestrator` | Generate focused tests for Databricks orchestration and skill behavior |
 
 ## Usage
 
