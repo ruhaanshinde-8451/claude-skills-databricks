@@ -28,6 +28,7 @@ Then reload skills:
 You should see:
 - `databricks-run-pipeline`
 - `databricks-integration-test`
+- `test-databricks-orchestrator`
 
 ### Other install options
 
@@ -57,6 +58,7 @@ Pin to a commit or tag by replacing `main` in the URL.
 |---|---|---|
 | Databricks Run Pipeline | `/databricks-run-pipeline` | Validate, deploy, run a bundle job, collect output, and summarize status |
 | Databricks Integration Test | `/databricks-integration-test` | Compare expected vs actual task parameters for a completed run |
+| Test Databricks Orchestrator | `/test-databricks-orchestrator` | Generate focused tests for the Databricks orchestrator and related skills |
 
 ## Usage
 
