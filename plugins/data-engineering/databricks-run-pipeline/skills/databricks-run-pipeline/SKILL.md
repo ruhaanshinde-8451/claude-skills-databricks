@@ -19,22 +19,21 @@ Run end-to-end Databricks bundle automation for a Databricks Asset Bundle repo.
 - If target is not provided, use `dev`.
 - If profile is not provided, use the same value as target.
 - Require an explicit job key before execution.
-- Use `databricks/run_pipeline.sh` if it exists; otherwise run direct `databricks bundle` commands.
 
 ## Available Jobs
 If `--job` is missing, read `databricks.yml`, list keys under `resources.jobs` and `resources.pipelines`, then ask which key to run.
 
 ## Execution
-Preferred:
 ```bash
-databricks/run_pipeline.sh --job <job_key> --target <target> --profile <profile> [...flags]
+databricks bundle validate --target <target> --profile <profile> --strict
+databricks bundle deploy --target <target> --profile <profile>
+databricks bundle run <job_key> --target <target> --profile <profile> -o json
 ```
 
-Fallback:
+After run, fetch metadata and output:
 ```bash
-databricks bundle validate -t <target> --profile <profile>
-databricks bundle deploy -t <target> --profile <profile>
-databricks bundle run <job_key> -t <target> --profile <profile>
+databricks jobs get-run <run_id> --profile <profile> -o json
+databricks jobs get-run-output <run_id> --profile <profile> -o json
 ```
 
 ## Safety Rules

@@ -1,80 +1,84 @@
 # Copilot Databricks Skills
 
-A skills pack for Databricks Asset Bundle workflows.  
-Install once, then use in **GitHub Copilot CLI** for validate/deploy/run and parameter validation.
-
----
+Skills pack for Databricks Asset Bundle workflows. Install once, then use in GitHub Copilot CLI or Claude Code to validate, deploy, run, and test Databricks jobs end to end.
 
 ## Prerequisites
 
-1. GitHub Copilot CLI installed.
-2. Databricks CLI installed and authenticated (`~/.databrickscfg`).
-3. A Databricks Asset Bundle repo with `databricks.yml`.
-
----
+1. GitHub Copilot CLI or Claude Code.
+2. Databricks CLI installed and authenticated with `~/.databrickscfg`.
+3. A Databricks Asset Bundle repo with `databricks.yml` at repo root.
 
 ## Installation
 
-Note: some environments cache `raw.githubusercontent.com` aggressively. If you see old installer behavior, use the cache-busted URL below (or the pinned commit fallback).
+### Quick install (recommended)
 
-### Install all skills
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash
-```
-
-### Install one skill
+From target repo root:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --skill databricks-run-pipeline
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --project
 ```
 
-### Replace existing installed version
+Then reload skills:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --force
+/skills reload
+/skills list
 ```
 
-For repo-scoped install (current repo only):
+You should see:
+- `databricks-run-pipeline`
+- `databricks-integration-test`
+
+### Other install options
+
+Install as personal skills:
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh?ts=$(date +%s)" | bash -s -- --project
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash
 ```
 
-If you still get cached content, use a commit-pinned URL:
+Install a single skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/2acf8899b69b5e4e9d0c9c978c65772b63bec8fd/install-skills.sh | bash -s -- --project
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --skill databricks-run-pipeline
 ```
 
-After install, run `/skills reload` (or open a new session).
+Overwrite existing installed version:
 
----
+```bash
+curl -fsSL https://raw.githubusercontent.com/ruhaanshinde-8451/claude-skills-databricks/main/install-skills.sh | bash -s -- --project --force
+```
 
-## Available Skills
+Pin to a commit or tag by replacing `main` in the URL.
+
+## Available skills
 
 | Skill | Command | Description |
 |---|---|---|
-| Databricks Run Pipeline | `/databricks-run-pipeline` | Validate, deploy, run job, collect output, and summarize status |
+| Databricks Run Pipeline | `/databricks-run-pipeline` | Validate, deploy, run a bundle job, collect output, and summarize status |
 | Databricks Integration Test | `/databricks-integration-test` | Compare expected vs actual task parameters for a completed run |
-
----
 
 ## Usage
 
-### Recommended model for deploy flows
-
-Before running deployment tasks in Copilot CLI, select:
-
-```bash
-/model claude-sonnet-4.6
-```
-
 ### Databricks Run Pipeline
 
+Usage:
+
 ```bash
-Use the /databricks-run-pipeline skill to run job <job_key> with target <target> and profile <profile>. Support flags: --skip-deploy, --no-strict, --no-wait, --integration-test, --skip-integration-test.
+/databricks-run-pipeline --job <job_key> [--target <target>] [--profile <profile>] [options]
 ```
+
+Options:
+
+| Flag | Default | Description |
+|---|---|---|
+| `--job` | required | Bundle job key to run |
+| `--target` | `dev` | Bundle target |
+| `--profile` | same as target | Databricks CLI profile |
+| `--skip-deploy` | false | Skip the deploy step |
+| `--no-strict` | false | Disable strict bundle validation |
+| `--no-wait` | false | Submit run without waiting for completion |
+| `--skip-integration-test` | false | Skip task parameter validation |
 
 Examples:
 
@@ -86,28 +90,29 @@ Examples:
 
 ### Databricks Integration Test
 
-```bash
-Use the /databricks-integration-test skill for run <run_id> and job <job_key> with target <target> and profile <profile>.
-```
-
-Example:
+Usage:
 
 ```bash
-/databricks-integration-test 123456789 --job ruhaan_repo --target dev --profile dev
+/databricks-integration-test <run_id> --job <job_key> [--target <target>] [--profile <profile>]
 ```
 
----
+Examples:
 
-## Defaults and Guardrails
+```bash
+/databricks-integration-test 123456789 --job ruhaan_repo
+/databricks-integration-test 123456789 --job ruhaan_repo --target stg --profile stg
+```
+
+## Defaults and guardrails
 
 - Default target is `dev`.
-- Default profile is same as target.
-- `prd` requires explicit confirmation.
-- Auth failures must report the exact failing command.
-- Output is compact and structured for handoff.
+- Default profile matches target.
+- Running against `prd` requires explicit confirmation.
+- Auth failures stop execution immediately and report the exact failing command.
+- Secrets and tokens are never printed or requested.
 
----
+## Contributing
 
-## Notes
-
-This repository is **Copilot-skills-first**. Skills are distributed from `plugins/.../SKILL.md` and installed via `install-skills.sh` into `~/.copilot/skills` (or `.github/skills` with `--project`).
+1. Add your skill under `plugins/<skill-name>/SKILL.md`.
+2. Follow the existing frontmatter format (`name`, `description`).
+3. Open a PR with a brief description of the skill and the team or target it supports.
