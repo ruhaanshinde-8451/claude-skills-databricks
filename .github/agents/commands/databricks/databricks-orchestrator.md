@@ -185,6 +185,8 @@ Next Action:          <value>
 Integration Test:     <passed|failed|skipped>
 Unit Test:            <passed|failed|skipped>
 Regression Test:      <passed|failed|skipped>
+Config Drift:         <detected|none|skipped>
+Slow Run:             <true|false|skipped>
 ========================================
 ```
 
