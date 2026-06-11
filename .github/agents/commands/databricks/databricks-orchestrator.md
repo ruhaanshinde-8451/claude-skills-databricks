@@ -15,7 +15,7 @@ Confirm before doing anything:
 - `target` — default `dev`
 - `profile` — default same as target
 - `skip_deploy` — default false
-- `skip_integration_test` — default false
+- `skip_tests` — default false
 
 Never assume `prd`. If user says production, ask for explicit confirmation.
 
@@ -90,9 +90,9 @@ From each output extract:
 | `FAILED` | Stop. Apply Next Action from Error Classification table. |
 | anything else | Stop. Report uncertainty and link to Databricks UI. |
 
-## Step 7 — Integration Test
+## Step 7 — Parameter Validation
 
-Skip if `skip_integration_test` is true or `Run State` is not `SUCCESS`.
+Skip if `skip_tests` is true or `Run State` is not `SUCCESS`.
 
 Read `databricks.yml` (or `databricks.yaml`). For each task in the job, extract expected parameter keys:
 - `notebook_task.base_parameters` → dict keys
@@ -109,6 +109,33 @@ Report per-task:
 
 `Parameter Validation` = `passed` if no deltas, else `failed`.
 
+
+## Step 8 — Run All Tests
+
+Skip if `skip_tests` is true or `Run State` is not `SUCCESS`.
+
+Run all available test skills in sequence. Do not skip unless explicitly told to.
+
+### Integration Test
+```bash
+/run-integration-test --repo-path <repo_path> --job-name <job_key> --target <target>
+```
+
+### Unit Test (when available)
+```bash
+/run-unit-test --repo-path <repo_path> --target <target>
+```
+
+### Regression Test (when available)
+```bash
+/run-regression-test --repo-path <repo_path> --target <target>
+```
+
+For each test skill:
+- Capture `status`, `run_id`, `run_url`, `task_error_message`
+- If any test returns `status=failure`, mark that test as failed but continue running remaining tests
+- Collect all results for Final Summary
+- Skip any skill that is not installed. Do not error on missing skills.
 ## Error Classification
 
 Classify error text against these patterns (first match wins):
@@ -155,6 +182,9 @@ Missing:              <value>
 Extra:                <value>
 Incorrect Values:     <value>
 Next Action:          <value>
+Integration Test:     <passed|failed|skipped>
+Unit Test:            <passed|failed|skipped>
+Regression Test:      <passed|failed|skipped>
 ========================================
 ```
 
