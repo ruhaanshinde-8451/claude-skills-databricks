@@ -128,7 +128,7 @@ Run all available test skills in sequence. Do not skip unless explicitly told to
 
 ### Regression Test (when available)
 ```bash
-/run-regression-test --repo-path <repo_path> --target <target>
+/run-regression-test --repo-path <repo_path> --job-name <job_key> --target <target>
 ```
 
 For each test skill:
