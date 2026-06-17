@@ -1,4 +1,4 @@
-# Copilot Databricks Skills
+# Copilot/Claude Databricks Skills
 
 Skills pack for Databricks Asset Bundle workflows. Install once, then use in GitHub Copilot CLI or Claude Code to validate, deploy, run, and test Databricks jobs end to end.
 
