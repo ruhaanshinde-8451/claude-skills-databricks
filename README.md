@@ -4,7 +4,7 @@ Skills pack for Databricks Asset Bundle workflows. Install once, then use in Git
 
 ## Prerequisites
 
-1. GitHub Copilot CLI or Claude Code.
+1. GitHub Copilot CLI (https://shorturl.at/54GBw) or Claude Code (https://claude.ai/code).
 2. Databricks CLI installed and authenticated with `~/.databrickscfg`.
 3. A Databricks Asset Bundle repo with `databricks.yml` at repo root.
 
