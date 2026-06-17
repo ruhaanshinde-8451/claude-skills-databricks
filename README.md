@@ -1,6 +1,10 @@
 # Copilot Databricks Skills
 
-Skills pack for Databricks Asset Bundle workflows. Install once, then use in GitHub Copilot CLI or Claude Code to validate, deploy, run, and test Databricks jobs end to end.
+An AI agent toolkit for automating the Databricks Asset Bundle (DAB) deployment lifecycle. Instead of manually running `databricks bundle deploy`, triggering a job, and checking the Databricks UI for results, you describe what you want in plain language and the agent runs the full validate → deploy → run → test loop for you, reporting back structured pass/fail results.
+
+Today this pack covers deploying a bundle and running integration tests against it. The long-term goal is a fully autonomous pipeline: the agent reads a Jira ticket describing a code change, makes the change, deploys it, runs tests, and opens a pull request for human review — no manual steps in between.
+
+
 
 ## Prerequisites
 
@@ -55,12 +59,12 @@ Pin to a commit or tag by replacing `main` in the URL.
 
 | Skill | Command | Description |
 |---|---|---|
-| Deploy DAB (dev) | `/deploy-dab` | Deploy a Databricks Asset Bundle to `dev` and return structured status/error output |
+| Deploy DAB (dev/tst) | `/deploy-dab` | Deploy a Databricks Asset Bundle to `dev` or `tst` and return structured status/error output |
 | Run Integration Test (dev) | `/run-integration-test` | Trigger a Databricks integration test job and poll to terminal state with structured results |
 
 ## Usage
 
-### Recommended flow (dev)
+### Recommended flow (default `dev`)
 
 Use these two skills in sequence:
 
@@ -69,12 +73,12 @@ Use these two skills in sequence:
 /run-integration-test --repo-path <path-to-dab-repo> (--job-id <id> | --job-name <name>) --target dev
 ```
 
-### Deploy DAB (dev only)
+### Deploy DAB (`dev` or `tst`; default `dev`)
 
 Usage:
 
 ```bash
-/deploy-dab --repo-path <path-to-dab-repo> --target dev
+/deploy-dab --repo-path <path-to-dab-repo> --target <dev|tst>
 ```
 
 Example:
