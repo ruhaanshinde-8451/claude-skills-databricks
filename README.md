@@ -4,6 +4,8 @@ An AI agent toolkit for automating the Databricks Asset Bundle (DAB) deployment 
 
 Today this pack covers deploying a bundle and running integration tests against it. The long-term goal is a fully autonomous pipeline: the agent reads a Jira ticket describing a code change, makes the change, deploys it, runs tests, and opens a pull request for human review — no manual steps in between.
 
+In day-to-day use, think of this as two commands: deploy bundle first, then run integration test against that deployed job.
+
 
 
 ## Prerequisites
@@ -11,6 +13,7 @@ Today this pack covers deploying a bundle and running integration tests against 
 1. GitHub Copilot CLI (https://shorturl.at/54GBw) or Claude Code (https://claude.ai/code).
 2. Databricks CLI installed and authenticated with `~/.databrickscfg`.
 3. A Databricks Asset Bundle repo with `databricks.yml` at repo root.
+4. A known repo root path to pass as `--repo-path` (all commands run from this path).
 
 ## Installation
 
@@ -73,6 +76,10 @@ Use these two skills in sequence:
 /run-integration-test --repo-path <path-to-dab-repo> (--job-id <id> | --job-name <name>) --target dev
 ```
 
+Notes:
+- Keep `--repo-path` the same across both commands.
+- Run integration test after deploy so job config and code are in sync.
+
 ### Deploy DAB (`dev` or `tst`; default `dev`)
 
 Usage:
@@ -86,6 +93,10 @@ Example:
 ```bash
 /deploy-dab --repo-path /Users/you/repos/my-dab --target dev
 ```
+
+When to use:
+- Use `dev` for normal development deployments.
+- Use `tst` when you need to validate in testing environment.
 
 ### Run Integration Test (dev only)
 
@@ -101,10 +112,16 @@ Example:
 /run-integration-test --repo-path /Users/you/repos/my-dab --job-id 123456789 --target dev
 ```
 
+Input tips:
+- Use `--job-id` when you already know exact Databricks job id.
+- Use `--job-name` when id is unknown and name is unique.
+- Use `--timeout-sec` for long-running suites; keep `--poll-interval-sec` at default unless you need faster status updates.
+
 ## Defaults and guardrails
 
 - Default target is `dev`.
 - Default profile matches target.
+- `deploy-dab` supports `dev` and `tst`; `run-integration-test` is `dev` only.
 - Running against `prd` requires explicit confirmation.
 - Auth failures stop execution immediately and report the exact failing command.
 - Secrets and tokens are never printed or requested.
