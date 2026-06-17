@@ -17,7 +17,7 @@ Confirm before doing anything:
 - `profile` — default same as target
 - `skip_deploy` — default false
 
-Never assume `prd`. If user says production, ask for explicit confirmation.
+Never assume `stg` or `prd`. If user says production, ask for explicit confirmation.
 
 ## Step 1 — Validate
 
