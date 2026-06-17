@@ -2,9 +2,6 @@
 
 An AI agent toolkit for automating the Databricks Asset Bundle (DAB) deployment lifecycle. Instead of manually running `databricks bundle deploy`, triggering a job, and checking the Databricks UI for results, you describe what you want in plain language and the agent runs the full validate → deploy → run → test loop for you, reporting back structured pass/fail results.
 
-Today this pack covers deploying a bundle and running integration tests against it. The long-term goal is a fully autonomous pipeline: the agent reads a Jira ticket describing a code change, makes the change, deploys it, runs tests, and opens a pull request for human review — no manual steps in between.
-
-In day-to-day use, think of this as two commands: deploy bundle first, then run integration test against that deployed job.
 
 
 
