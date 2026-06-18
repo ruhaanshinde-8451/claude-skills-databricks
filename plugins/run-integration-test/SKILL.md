@@ -1,21 +1,21 @@
 ---
 name: run-integration-test
-description: Trigger a Databricks integration test job in dev and monitor it to terminal state.
-argument-hint: --repo-path <path> (--job-id <id> | --job-name <name>) --target dev [--poll-interval-sec 30] [--timeout-sec 1800] [--baseline-duration-sec <seconds>]
+description: Trigger a Databricks integration test job in dev or tst and monitor it to terminal state.
+argument-hint: --repo-path <path> (--job-id <id> | --job-name <name>) [--target dev] [--poll-interval-sec 30] [--timeout-sec 1800] [--baseline-duration-sec <seconds>]
 ---
 
 # /run-integration-test
 
-Trigger a Databricks integration test job and poll until completion for the **dev** environment.
+Trigger a Databricks integration test job and poll until completion for **dev** (default) or **tst**.
 
 ## Required Inputs
 - `--repo-path <path>`: Path to the Databricks bundle repo root (used as working directory for CLI execution).
-- `--target <env>`: Environment to run against. This skill supports `dev` only.
 - One of:
   - `--job-id <id>`
   - `--job-name <name>` (must resolve to exactly one Databricks job)
 
 ## Optional Inputs
+- `--target <env>`: Environment to run against. Supports `dev` (default) or `tst`. Any other value is rejected.
 - `--poll-interval-sec <seconds>`: Poll interval. Default `30`.
 - `--timeout-sec <seconds>`: Max poll duration. Default `1800` (30 minutes).
 - `--baseline-duration-sec <seconds>`: Expected job duration baseline. If elapsed exceeds `3x` this value before hard timeout, flag as `slow_run` in output.
@@ -27,13 +27,13 @@ Trigger a Databricks integration test job and poll until completion for the **de
 
 ## Execution
 1. Validate `repo-path` exists and is a directory.
-2. Validate `target=dev`; otherwise return `unsupported_target`.
+2. Resolve `target`: default to `dev` if not provided. If `target` is not `dev` or `tst`, return `unsupported_target`.
 3. Resolve job identifier:
    - If `--job-id` provided, use it directly.
    - If `--job-name` provided, resolve with Databricks CLI and require exactly one match.
 4. Config drift check — compare deployed job config against `databricks.yml`:
 ```bash
-   databricks bundle validate --target dev -o json
+   databricks bundle validate --target <target> -o json
    databricks jobs get --job-id <job_id> -o json
 ```
    Check for drift in: `tasks`, `job_clusters`, `parameters`, `schedule`, `libraries`.
@@ -71,7 +71,7 @@ Return structured output:
   "status": "success|failure|timeout",
   "error": "authentication_error|job_not_found|unsupported_target|run_failed|run_canceled|timeout|null",
   "message": "human-readable summary",
-  "target": "dev",
+  "target": "dev|tst",
   "job_id": "<resolved job id>",
   "job_name": "<resolved job name or input>",
   "run_id": "<run id>",
@@ -115,10 +115,16 @@ Authentication failures (for example `Unauthorized`, `invalid access token`, `pr
 - `error=authentication_error`
 - human-readable `message` (no raw stack trace as top-level message)
 
+Unsupported target (anything other than `dev` or `tst`):
+- `status=failure`
+- `error=unsupported_target`
+- `message=This skill only supports dev and tst. Use the Databricks CLI directly for other environments.`
+
 ## Manual Verification
-Verify end-to-end against the representative dev integration test job from the scaffold spike:
-1. Successful job returns `status=success` and `run_url`.
+Verify end-to-end against the representative dev and tst integration test jobs:
+1. Successful job returns `status=success` and `run_url` for both `dev` and `tst`.
 2. Failing job returns `status=failure`, `run_url`, and `task_error_message`.
 3. Timeout path returns `status=timeout` with `elapsed_seconds` when poll duration exceeds 30 minutes.
 4. Config drift detected returns `config_drift=true` and `config_drift_details` with differing fields.
 5. Slow run detected returns `slow_run=true` with `elapsed_seconds` populated.
+6. Unsupported target (e.g. `stg`, `prd`) returns `status=failure` and `error=unsupported_target`.
