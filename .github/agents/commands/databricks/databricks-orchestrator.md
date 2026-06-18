@@ -16,9 +16,8 @@ Confirm before doing anything:
 - `target` — default `dev`
 - `profile` — default same as target
 - `skip_deploy` — default false
-- `skip_tests` — default false
 
-Never assume `prd`. If user says production, ask for explicit confirmation.
+Never assume `stg` or `prd`. If user says production, ask for explicit confirmation.
 
 ## Step 1 — Validate
 
@@ -48,8 +47,6 @@ databricks bundle deploy --target <target> --profile <profile>
 
 ## Step 3 — Unit Test Gate
 
-Skip if `skip_tests` is true.
-
 Run unit tests before any Databricks run:
 ```bash
 /run-unit-test --repo-path <repo_path> --target <target>
@@ -57,7 +54,7 @@ Run unit tests before any Databricks run:
 
 - If unit tests return `status=success`, continue.
 - If unit tests return `status=failure` or `status=error`, stop. Do not proceed to run.
-- If unit test skill is not installed, mark unit test as `skipped` and continue.
+- If unit test skill is missing or cannot execute, stop with `Unit Test=failed`.
 
 ## Step 4 — Run
 
@@ -112,7 +109,7 @@ From each output extract:
 
 ## Step 8 — Parameter Validation
 
-Skip if `skip_tests` is true or `Run State` is not `SUCCESS`.
+Skip if `Run State` is not `SUCCESS`.
 
 Read `databricks.yml` (or `databricks.yaml`). For each task in the job, extract expected parameter keys:
 - `notebook_task.base_parameters` → dict keys
@@ -132,27 +129,24 @@ Report per-task:
 
 ## Step 9 — Post-Run Tests
 
-Skip if `skip_tests` is true or `Run State` is not `SUCCESS`.
+Skip if `Run State` is not `SUCCESS`.
 
-Run remaining available test skills in sequence after run success. Do not skip unless explicitly told to.
-
-- If any test skill returns status=error, treat as skipped in Final Summary.
+Run integration and regression tests after run success. These tests are required by default.
 
 ### Integration Test
 ```bash
-/run-integration-test --repo-path <repo_path> --job-name <job_key> --target <target>
-```
+/run-integration-test --repo-path <repo_path> --job-name <job_key> --target <target> --profile <profile>```
 
-### Regression Test (when available)
+### Regression Test
 ```bash
 /run-regression-test --repo-path <repo_path> --job-name <job_key> --target <target>
 ```
 
 For each test skill:
 - Capture `status`, `run_id`, `run_url`, `task_error_message`
-- If any test returns `status=failure`, mark that test as failed but continue running remaining tests
+- If any test returns `status=failure` or `status=error`, mark that test as failed but continue running remaining tests
 - Collect all results for Final Summary
-- Skip any skill that is not installed. Do not error on missing skills.
+- Missing test skill is failure, not skipped.
 ## Error Classification
 
 Classify error text against these patterns (first match wins):
