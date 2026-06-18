@@ -135,8 +135,7 @@ Run integration and regression tests after run success. These tests are required
 
 ### Integration Test
 ```bash
-/run-integration-test --repo-path <repo_path> --job-name <job_key> --target <target>
-```
+/run-integration-test --repo-path <repo_path> --job-name <job_key> --target <target> --profile <profile>```
 
 ### Regression Test
 ```bash
